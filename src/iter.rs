@@ -5,19 +5,23 @@ use core::mem;
 
 pub struct IntoIter<T: Default, const N: usize> {
     data: ArrayVec<[T; N]>,
-    front_offset: usize,
+    front_offset: u16,
 }
 
 impl<T: Default, const N: usize> Iterator for IntoIter<T, N> {
     type Item = T;
     fn next(&mut self) -> Option<Self::Item> {
-        let val = self.data.get_mut(self.front_offset)?;
+        if self.front_offset == self.data.len {
+            return None;
+        }
+        let val = self.data.get_mut(self.front_offset as usize)?;
         self.front_offset += 1;
         Some(mem::take(val))
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let hint = self.data.len() - self.front_offset;
+        let hint = self.data.len - self.front_offset;
+        let hint = hint as usize;
         (hint, Some(hint))
     }
 }
